@@ -1,30 +1,36 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { Pressable, View } from "react-native";
 
-import { AppText } from '@/components/ui/app-text';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { FormNotice } from '@/components/ui/form-notice';
-import { Icon, type IconName } from '@/components/ui/icon';
-import { Logo } from '@/components/ui/logo';
-import { PreviewChip } from '@/components/ui/preview-chip';
-import { Reveal } from '@/components/ui/reveal';
-import { Screen } from '@/components/ui/screen';
-import { SectionHeader } from '@/components/ui/section-header';
-import { INTEGRATIONS } from '@/config/integrations';
-import { useSession } from '@/features/auth/session-context';
-import { signOut } from '@/services/auth';
+import { AppText } from "@/components/ui/app-text";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { FormNotice } from "@/components/ui/form-notice";
+import { Icon, type IconName } from "@/components/ui/icon";
+import { Logo } from "@/components/ui/logo";
+import { PreviewChip } from "@/components/ui/preview-chip";
+import { Reveal } from "@/components/ui/reveal";
+import { Screen } from "@/components/ui/screen";
+import { SectionHeader } from "@/components/ui/section-header";
+import { INTEGRATIONS } from "@/config/integrations";
+import { useSession } from "@/features/auth/session-context";
+import { signOut } from "@/services/auth";
 
 type SettingsRowProps = {
   icon: IconName;
   title: string;
   caption: string;
   onPress: () => void;
-  tone?: 'default' | 'danger';
+  tone?: "default" | "danger";
 };
 
-function SettingsRow({ icon, title, caption, onPress, tone = 'default' }: SettingsRowProps) {
-  const isDanger = tone === 'danger';
+function SettingsRow({
+  icon,
+  title,
+  caption,
+  onPress,
+  tone = "default",
+}: SettingsRowProps) {
+  const isDanger = tone === "danger";
 
   return (
     <Pressable
@@ -35,15 +41,15 @@ function SettingsRow({ icon, title, caption, onPress, tone = 'default' }: Settin
       <View
         className={
           isDanger
-            ? 'h-11 w-11 items-center justify-center rounded-2xl bg-danger/15'
-            : 'h-11 w-11 items-center justify-center rounded-2xl bg-primary/15'
+            ? "h-11 w-11 items-center justify-center rounded-2xl bg-danger/15"
+            : "h-11 w-11 items-center justify-center rounded-2xl bg-primary/15"
         }
       >
-        <Icon name={icon} size={19} tone={isDanger ? 'danger' : 'primary'} />
+        <Icon name={icon} size={19} tone={isDanger ? "danger" : "primary"} />
       </View>
 
       <View className="flex-1 gap-0.5">
-        <AppText variant="label" tone={isDanger ? 'danger' : 'default'}>
+        <AppText variant="label" tone={isDanger ? "danger" : "default"}>
           {title}
         </AppText>
         <AppText variant="caption" tone="muted">
@@ -70,7 +76,7 @@ export function SettingsScreen() {
       }
     } finally {
       exitPreview();
-      router.replace('/');
+      router.replace("/");
     }
   }
 
@@ -103,7 +109,8 @@ export function SettingsScreen() {
 
           <View className="mt-4 rounded-2xl border border-border bg-background/40 p-3">
             <AppText variant="caption" tone="muted">
-              No hay un usuario real cargado. Supabase Auth se conectará en la siguiente etapa.
+              No hay un usuario real cargado. Supabase Auth se conectará en la
+              siguiente etapa.
             </AppText>
           </View>
         </View>
@@ -117,7 +124,7 @@ export function SettingsScreen() {
             icon="key"
             title="Cambiar contraseña"
             caption="Prepara el flujo y revisa sus estados"
-            onPress={() => router.push('/settings/change-password')}
+            onPress={() => router.push("/settings/change-password")}
           />
           <SettingsRow
             icon="logout"
@@ -130,14 +137,20 @@ export function SettingsScreen() {
       </Reveal>
 
       <Reveal delay={200} className="gap-3">
-        <SectionHeader title="Integraciones" caption="Todavía no configuradas" />
+        <SectionHeader
+          title="Integraciones"
+          caption="Todavía no configuradas"
+        />
 
         <View className="gap-3 rounded-3xl border border-border bg-card/70 p-4">
           {Object.values(INTEGRATIONS).map((integration) => (
-            <View key={integration.name} className="flex-row items-center gap-3">
+            <View
+              key={integration.name}
+              className="flex-row items-center gap-3"
+            >
               <View className="h-10 w-10 items-center justify-center rounded-2xl bg-surface">
                 <Icon
-                  name={integration.name === 'Supabase' ? 'album' : 'sparkle'}
+                  name={integration.name === "Supabase" ? "album" : "sparkle"}
                   size={18}
                   tone="primary"
                 />
@@ -172,7 +185,8 @@ export function SettingsScreen() {
           <View className="flex-1 gap-1">
             <AppText variant="bodyStrong">Melody · 1.0.0</AppText>
             <AppText variant="caption" tone="muted">
-              Una base visual premium para organizar tu música. Hecha con Expo Router y Uniwind.
+              Una base visual premium para organizar tu música. Hecha con Expo
+              Router y Uniwind.
             </AppText>
           </View>
         </View>

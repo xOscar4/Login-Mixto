@@ -50,6 +50,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "build": "expo export --platform web --output-dir dist",
+    "vercel-build": "expo export --platform web --output-dir dist",
     "lint": "expo lint"
   },
   "private": true

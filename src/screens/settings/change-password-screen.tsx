@@ -1,31 +1,39 @@
-import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { View } from 'react-native';
+import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { View } from "react-native";
 
-import { AppText } from '@/components/ui/app-text';
-import { Button } from '@/components/ui/button';
-import { FormNotice } from '@/components/ui/form-notice';
-import { LottiePlayer } from '@/components/ui/lottie-player';
-import { PasswordStrength } from '@/components/ui/password-strength';
-import { Reveal } from '@/components/ui/reveal';
-import { Screen } from '@/components/ui/screen';
-import { ScreenHeader } from '@/components/ui/screen-header';
-import { TextField } from '@/components/ui/text-field';
-import { hasErrors, validatePasswordChange, type FieldErrors } from '@/lib/validation';
-import { changePassword } from '@/services/auth';
+import { AppText } from "@/components/ui/app-text";
+import { Button } from "@/components/ui/button";
+import { FormNotice } from "@/components/ui/form-notice";
+import { LottiePlayer } from "@/components/ui/lottie-player";
+import { PasswordStrength } from "@/components/ui/password-strength";
+import { Reveal } from "@/components/ui/reveal";
+import { Screen } from "@/components/ui/screen";
+import { ScreenHeader } from "@/components/ui/screen-header";
+import { TextField } from "@/components/ui/text-field";
+import {
+    hasErrors,
+    validatePasswordChange,
+    type FieldErrors,
+} from "@/lib/validation";
+import { changePassword } from "@/services/auth";
 
 export function ChangePasswordScreen() {
   const router = useRouter();
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   async function handleSubmit() {
-    const nextErrors = validatePasswordChange(currentPassword, newPassword, confirmPassword);
+    const nextErrors = validatePasswordChange(
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    );
     setErrors(nextErrors);
     setSubmitError(null);
 
@@ -39,7 +47,11 @@ export function ChangePasswordScreen() {
       setShowSuccess(true);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'No se pudo cambiar la contraseña.');
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo cambiar la contraseña.",
+      );
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   }
@@ -51,7 +63,7 @@ export function ChangePasswordScreen() {
 
         <Reveal className="items-center gap-4 rounded-3xl border border-border bg-card/80 p-6 card-shadow">
           <LottiePlayer
-            source={require('@/assets/animations/success-check.json')}
+            source={require("@/assets/animations/success-check.json")}
             fallback="success"
             className="h-40 w-40"
           />
@@ -61,12 +73,17 @@ export function ChangePasswordScreen() {
               Flujo listo para revisar
             </AppText>
             <AppText variant="caption" tone="muted" className="text-center">
-              Esta es la vista previa del estado de éxito. Ninguna contraseña fue modificada.
+              Esta es la vista previa del estado de éxito. Ninguna contraseña
+              fue modificada.
             </AppText>
           </View>
 
           {submitError ? (
-            <FormNotice tone="danger" title="No se pudo actualizar la contraseña" message={submitError} />
+            <FormNotice
+              tone="danger"
+              title="No se pudo actualizar la contraseña"
+              message={submitError}
+            />
           ) : null}
 
           <View className="w-full gap-3">
@@ -76,9 +93,9 @@ export function ChangePasswordScreen() {
               variant="ghost"
               onPress={() => {
                 setShowSuccess(false);
-                setCurrentPassword('');
-                setNewPassword('');
-                setConfirmPassword('');
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
               }}
             />
           </View>
@@ -102,7 +119,10 @@ export function ChangePasswordScreen() {
         />
       </Reveal>
 
-      <Reveal delay={80} className="gap-4 rounded-3xl border border-border bg-card/80 p-5 card-shadow">
+      <Reveal
+        delay={80}
+        className="gap-4 rounded-3xl border border-border bg-card/80 p-5 card-shadow"
+      >
         <TextField
           label="Contraseña actual"
           icon="lock"
@@ -150,8 +170,16 @@ export function ChangePasswordScreen() {
       </Reveal>
 
       <Reveal delay={140} className="gap-3">
-        <Button label="Actualizar contraseña" icon="check" onPress={handleSubmit} />
-        <Button label="Cancelar" variant="secondary" onPress={() => router.back()} />
+        <Button
+          label="Actualizar contraseña"
+          icon="check"
+          onPress={handleSubmit}
+        />
+        <Button
+          label="Cancelar"
+          variant="secondary"
+          onPress={() => router.back()}
+        />
       </Reveal>
     </Screen>
   );

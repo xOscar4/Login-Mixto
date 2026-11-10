@@ -5,11 +5,11 @@
  * recuperación de acceso, cambio de contraseña y cierre de sesión.
  */
 
-import type { User } from '@supabase/supabase-js';
+import type { User } from "@supabase/supabase-js";
 
-import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
+import { getAuthRedirectUrl, supabase } from "@/lib/supabase";
 
-export type { Session, User } from '@supabase/supabase-js';
+export type { Session, User } from "@supabase/supabase-js";
 
 export { supabase };
 
@@ -26,9 +26,13 @@ export async function signInWithEmail(email: string, password: string) {
   return data;
 }
 
-export async function signUpWithEmail(email: string, password: string, displayName?: string) {
-  const redirectUrl = getAuthRedirectUrl('auth/callback');
-  console.log('[Melody] signUp emailRedirectTo:', redirectUrl);
+export async function signUpWithEmail(
+  email: string,
+  password: string,
+  displayName?: string,
+) {
+  const redirectUrl = getAuthRedirectUrl("auth/callback");
+  console.log("[Melody] signUp emailRedirectTo:", redirectUrl);
 
   const { data, error } = await supabase.auth.signUp({
     email: email.trim(),
@@ -55,9 +59,12 @@ export async function signOut() {
 }
 
 export async function resetPasswordForEmail(email: string) {
-  const { data, error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-    redirectTo: getAuthRedirectUrl('reset-password'),
-  });
+  const { data, error } = await supabase.auth.resetPasswordForEmail(
+    email.trim(),
+    {
+      redirectTo: getAuthRedirectUrl("reset-password"),
+    },
+  );
 
   if (error) {
     throw error;
@@ -66,7 +73,10 @@ export async function resetPasswordForEmail(email: string) {
   return data;
 }
 
-export async function changePassword(newPassword: string, currentPassword?: string) {
+export async function changePassword(
+  newPassword: string,
+  currentPassword?: string,
+) {
   const payload: { password: string; current_password?: string } = {
     password: newPassword,
   };
@@ -85,9 +95,11 @@ export async function changePassword(newPassword: string, currentPassword?: stri
 }
 
 export async function signInWithGoogle(): Promise<never> {
-  throw new Error('signInWithGoogle: todavía no implementado. Ver siguiente paso de OAuth.');
+  throw new Error(
+    "signInWithGoogle: todavía no implementado. Ver siguiente paso de OAuth.",
+  );
 }
 
 export async function resetPassword(_email: string): Promise<never> {
-  throw new Error('resetPassword: uso revertido; usa resetPasswordForEmail().');
+  throw new Error("resetPassword: uso revertido; usa resetPasswordForEmail().");
 }

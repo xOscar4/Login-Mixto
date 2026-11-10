@@ -1,38 +1,38 @@
-import '../../global.css';
+import "../../global.css";
 
-import { DMSans_400Regular } from '@expo-google-fonts/dm-sans/400Regular';
-import { DMSans_500Medium } from '@expo-google-fonts/dm-sans/500Medium';
-import { DMSans_600SemiBold } from '@expo-google-fonts/dm-sans/600SemiBold';
-import { DMSans_700Bold } from '@expo-google-fonts/dm-sans/700Bold';
-import { Outfit_500Medium } from '@expo-google-fonts/outfit/500Medium';
-import { Outfit_600SemiBold } from '@expo-google-fonts/outfit/600SemiBold';
-import { Outfit_700Bold } from '@expo-google-fonts/outfit/700Bold';
-import { Outfit_800ExtraBold } from '@expo-google-fonts/outfit/800ExtraBold';
-import { useFonts } from 'expo-font';
-import { Stack, ThemeProvider, DarkTheme } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Uniwind } from 'uniwind';
+import { DMSans_400Regular } from "@expo-google-fonts/dm-sans/400Regular";
+import { DMSans_500Medium } from "@expo-google-fonts/dm-sans/500Medium";
+import { DMSans_600SemiBold } from "@expo-google-fonts/dm-sans/600SemiBold";
+import { DMSans_700Bold } from "@expo-google-fonts/dm-sans/700Bold";
+import { Outfit_500Medium } from "@expo-google-fonts/outfit/500Medium";
+import { Outfit_600SemiBold } from "@expo-google-fonts/outfit/600SemiBold";
+import { Outfit_700Bold } from "@expo-google-fonts/outfit/700Bold";
+import { Outfit_800ExtraBold } from "@expo-google-fonts/outfit/800ExtraBold";
+import { useFonts } from "expo-font";
+import { DarkTheme, Stack, ThemeProvider } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Uniwind } from "uniwind";
 
-import { CollectionsProvider } from '@/features/collections/collections-context';
-import { SessionProvider } from '@/features/auth/session-context';
-import { BACKGROUND_COLOR } from '@/lib/theme';
+import { SessionProvider } from "@/features/auth/session-context";
+import { CollectionsProvider } from "@/features/collections/collections-context";
+import { BACKGROUND_COLOR } from "@/lib/theme";
 
-Uniwind.setTheme('dark');
+Uniwind.setTheme("dark");
 
 const navigationTheme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    primary: '#3b82f6',
+    primary: "#3b82f6",
     background: BACKGROUND_COLOR,
     card: BACKGROUND_COLOR,
-    text: '#f5f7ff',
-    border: '#232a47',
-    notification: '#8b5cf6',
+    text: "#f5f7ff",
+    border: "#232a47",
+    notification: "#8b5cf6",
   },
 };
 

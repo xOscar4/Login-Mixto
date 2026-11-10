@@ -1,9 +1,17 @@
-import * as Linking from 'expo-linking';
-import { router } from 'expo-router';
-import { createContext, use, useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
+import * as Linking from "expo-linking";
+import { router } from "expo-router";
+import {
+    createContext,
+    use,
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+    type PropsWithChildren,
+} from "react";
 
-import { supabase } from '@/lib/supabase';
-import type { Session, User } from '@supabase/supabase-js';
+import { supabase } from "@/lib/supabase";
+import type { Session, User } from "@supabase/supabase-js";
 
 type SessionContextValue = {
   /**
@@ -39,7 +47,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
     } = await supabase.auth.getSession();
 
     if (error) {
-      console.warn('[Melody] getSession error:', error.message);
+      console.warn("[Melody] getSession error:", error.message);
       applySession(null);
       setLoading(false);
       return;
@@ -59,7 +67,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       applySession(nextSession);
       setLoading(false);
 
-      if (_event === 'SIGNED_OUT') {
+      if (_event === "SIGNED_OUT") {
         setIsPreview(false);
       }
     });
@@ -77,36 +85,38 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
       try {
         const parsedUrl = new URL(url);
-        const tokenHash = parsedUrl.searchParams.get('token_hash');
-        const type = parsedUrl.searchParams.get('type');
+        const tokenHash = parsedUrl.searchParams.get("token_hash");
+        const type = parsedUrl.searchParams.get("type");
 
         if (!tokenHash || !type) {
           return;
         }
 
-        if (type === 'recovery') {
-          router.replace(`/reset-password?token_hash=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(type)}`);
+        if (type === "recovery") {
+          router.replace(
+            `/reset-password?token_hash=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(type)}`,
+          );
           return;
         }
 
         const { error } = await supabase.auth.verifyOtp({
-          type: type as 'email' | 'signup',
+          type: type as "email" | "signup",
           token_hash: tokenHash,
         });
 
         if (error) {
-          console.warn('[Melody] verifyOtp error:', error.message);
+          console.warn("[Melody] verifyOtp error:", error.message);
           return;
         }
 
         await refreshSession();
-        router.replace('/home');
+        router.replace("/home");
       } catch (error) {
-        console.warn('[Melody] auth callback unavailable:', error);
+        console.warn("[Melody] auth callback unavailable:", error);
       }
     };
 
-    const subscription = Linking.addEventListener('url', (event) => {
+    const subscription = Linking.addEventListener("url", (event) => {
       void handleAuthCallback(event.url);
     });
 
@@ -133,14 +143,16 @@ export function SessionProvider({ children }: PropsWithChildren) {
     [isPreview, loading, refreshSession, session, user],
   );
 
-  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
+  return (
+    <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
+  );
 }
 
 export function useSession() {
   const value = use(SessionContext);
 
   if (!value) {
-    throw new Error('useSession debe usarse dentro de SessionProvider');
+    throw new Error("useSession debe usarse dentro de SessionProvider");
   }
 
   return value;

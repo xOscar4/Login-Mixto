@@ -1,27 +1,35 @@
-import * as Haptics from 'expo-haptics';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
+import { useState } from "react";
+import { Pressable, View } from "react-native";
 
-import { AppText } from '@/components/ui/app-text';
-import { Button } from '@/components/ui/button';
-import { FormNotice } from '@/components/ui/form-notice';
-import { Logo } from '@/components/ui/logo';
-import { PasswordStrength } from '@/components/ui/password-strength';
-import { Reveal } from '@/components/ui/reveal';
-import { Screen } from '@/components/ui/screen';
-import { TextField } from '@/components/ui/text-field';
-import { hasErrors, validateRegister, type FieldErrors } from '@/lib/validation';
-import { signUpWithEmail } from '@/services/auth';
+import { AppText } from "@/components/ui/app-text";
+import { Button } from "@/components/ui/button";
+import { FormNotice } from "@/components/ui/form-notice";
+import { Logo } from "@/components/ui/logo";
+import { PasswordStrength } from "@/components/ui/password-strength";
+import { Reveal } from "@/components/ui/reveal";
+import { Screen } from "@/components/ui/screen";
+import { TextField } from "@/components/ui/text-field";
+import {
+    hasErrors,
+    validateRegister,
+    type FieldErrors,
+} from "@/lib/validation";
+import { signUpWithEmail } from "@/services/auth";
 
 export function RegisterScreen() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitted, setSubmitted] = useState(false);
-  const [notice, setNotice] = useState<{ title: string; message: string; tone: 'success' | 'danger' } | null>(null);
+  const [notice, setNotice] = useState<{
+    title: string;
+    message: string;
+    tone: "success" | "danger";
+  } | null>(null);
 
   async function handleSubmit() {
     const nextErrors = validateRegister(name, email, password, confirmPassword);
@@ -40,23 +48,23 @@ export function RegisterScreen() {
 
       setSubmitted(true);
       setNotice({
-        tone: needsConfirmation ? 'success' : 'success',
-        title: needsConfirmation ? 'Cuenta creada' : 'Cuenta creada',
+        tone: needsConfirmation ? "success" : "success",
+        title: needsConfirmation ? "Cuenta creada" : "Cuenta creada",
         message: needsConfirmation
-          ? 'Revisa tu correo para confirmar la cuenta y completar el registro.'
-          : 'Tu cuenta ya quedó lista para entrar.',
+          ? "Revisa tu correo para confirmar la cuenta y completar el registro."
+          : "Tu cuenta ya quedó lista para entrar.",
       });
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
       if (data.session) {
-        router.replace('/home');
+        router.replace("/home");
       }
     } catch (error) {
       setSubmitted(false);
       setNotice({
-        tone: 'danger',
-        title: 'No se pudo crear la cuenta',
-        message: error instanceof Error ? error.message : 'Inténtalo de nuevo.',
+        tone: "danger",
+        title: "No se pudo crear la cuenta",
+        message: error instanceof Error ? error.message : "Inténtalo de nuevo.",
       });
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
@@ -132,7 +140,13 @@ export function RegisterScreen() {
             error={errors.confirmPassword}
           />
 
-          {notice ? <FormNotice tone={notice.tone} title={notice.title} message={notice.message} /> : null}
+          {notice ? (
+            <FormNotice
+              tone={notice.tone}
+              title={notice.title}
+              message={notice.message}
+            />
+          ) : null}
 
           <Button label="Crear cuenta" icon="sparkle" onPress={handleSubmit} />
         </View>
