@@ -14,10 +14,12 @@ import { Reveal } from '@/components/ui/reveal';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { TextField } from '@/components/ui/text-field';
+import { useSession } from '@/features/auth/session-context';
 import {
   coverIndexFor,
   useCollections,
 } from '@/features/collections/collections-context';
+import type { MusicCollection } from '@/features/collections/types';
 import { hasErrors, validateCollection, type FieldErrors } from '@/lib/validation';
 
 type CollectionFormScreenProps = {
@@ -29,13 +31,38 @@ const DESCRIPTION_LIMIT = 280;
 
 export function CollectionFormScreen({ mode, collectionId }: CollectionFormScreenProps) {
   const router = useRouter();
-  const { createCollection, updateCollection, getCollection } = useCollections();
+  const { isAuthenticated } = useSession();
+  const { getCollection, loading } = useCollections();
   const existing = mode === 'edit' && collectionId ? getCollection(collectionId) : undefined;
 
-  const [name, setName] = useState(existing?.name ?? '');
-  const [description, setDescription] = useState(existing?.description ?? '');
-  const [errors, setErrors] = useState<FieldErrors>({});
-  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'success'>('idle');
+  if (loading) {
+    return (
+      <Screen scroll contentClassName="gap-6">
+        <ScreenHeader title={mode === 'edit' ? 'Editar colección' : 'Nueva colección'} />
+        <View className="items-center gap-3 rounded-3xl border border-border bg-card/70 px-6 py-10 card-shadow">
+          <LoadingIndicator size="lg" label="Cargando colección..." />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Screen scroll contentClassName="gap-6">
+        <ScreenHeader title={mode === 'edit' ? 'Editar colección' : 'Nueva colección'} />
+        <FormNotice
+          tone="info"
+          title="Inicia sesión para continuar"
+          message="Las colecciones se guardan en Supabase y necesitan una cuenta autenticada."
+        />
+        <Button
+          label="Iniciar sesión"
+          icon="lock"
+          onPress={() => router.replace('/')}
+        />
+      </Screen>
+    );
+  }
 
   if (mode === 'edit' && !existing) {
     return (
@@ -49,11 +76,10 @@ export function CollectionFormScreen({ mode, collectionId }: CollectionFormScree
           />
           <View className="items-center gap-2">
             <AppText variant="heading" className="text-center">
-              Este borrador ya no existe
+              No encontramos esta colección
             </AppText>
             <AppText variant="caption" tone="muted" className="text-center">
-              Los borradores viven en memoria. Si recargaste la app o eliminaste la colección, no
-              hay datos que editar.
+              Puede que la hayas eliminado o que no pertenezca a tu cuenta.
             </AppText>
           </View>
           <Button
@@ -67,9 +93,35 @@ export function CollectionFormScreen({ mode, collectionId }: CollectionFormScree
     );
   }
 
-  function handleSave() {
+  return (
+    <CollectionForm
+      key={collectionId ?? 'new'}
+      mode={mode}
+      collectionId={collectionId}
+      existing={existing}
+    />
+  );
+}
+
+type CollectionFormProps = {
+  mode: 'create' | 'edit';
+  collectionId?: string;
+  existing?: MusicCollection;
+};
+
+function CollectionForm({ mode, collectionId, existing }: CollectionFormProps) {
+  const router = useRouter();
+  const { createCollection, updateCollection } = useCollections();
+  const [name, setName] = useState(existing?.name ?? '');
+  const [description, setDescription] = useState(existing?.description ?? '');
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'success'>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  async function handleSave() {
     const nextErrors = validateCollection(name, description);
     setErrors(nextErrors);
+    setSaveError(null);
 
     if (hasErrors(nextErrors)) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -78,27 +130,33 @@ export function CollectionFormScreen({ mode, collectionId }: CollectionFormScree
 
     setSaveState('saving');
 
-    if (mode === 'edit' && collectionId) {
-      updateCollection(collectionId, { name, description });
-    } else {
-      createCollection({ name, description });
-    }
+    try {
+      if (mode === 'edit' && collectionId) {
+        await updateCollection(collectionId, { name, description });
+      } else {
+        await createCollection({ name, description });
+      }
 
-    setTimeout(() => {
       setSaveState('success');
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
       setTimeout(() => {
         router.back();
-      }, 2200);
-    }, 600);
+      }, 1800);
+    } catch (error) {
+      setSaveState('idle');
+      setSaveError(
+        error instanceof Error ? error.message : 'No se pudo guardar la colección.',
+      );
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
   }
 
   return (
     <Screen scroll contentClassName="gap-6">
       <ScreenHeader
         title={mode === 'edit' ? 'Editar colección' : 'Nueva colección'}
-        subtitle="Solo borrador local por ahora"
+        subtitle="Se guarda en tu cuenta de Supabase"
       />
 
       <Reveal className="gap-3 rounded-3xl border border-border bg-card/80 p-5 card-shadow">
@@ -146,17 +204,24 @@ export function CollectionFormScreen({ mode, collectionId }: CollectionFormScree
 
       <Reveal delay={140}>
         <FormNotice
-          tone="pending"
-          title="Guardado local, sin Supabase"
-          message="Al guardar, la colección se añade a la memoria de esta sesión. No se escribe en una base de datos ni se envía a ningún servidor."
+          tone="success"
+          title="Guardado real en Supabase"
+          message="La colección se guarda en la tabla collections con tu user_id. Las políticas RLS solo te permiten ver y editar tus propios registros."
         />
       </Reveal>
+
+      {saveError ? (
+        <Reveal delay={160}>
+          <FormNotice tone="danger" title="No se pudo guardar" message={saveError} />
+        </Reveal>
+      ) : null}
 
       <Reveal delay={200} className="gap-3">
         <Button
           label={mode === 'edit' ? 'Guardar cambios' : 'Guardar colección'}
           icon="check"
           loading={saveState === 'saving'}
+          disabled={saveState !== 'idle'}
           onPress={handleSave}
         />
         <Button
@@ -176,7 +241,7 @@ export function CollectionFormScreen({ mode, collectionId }: CollectionFormScree
         <View className="flex-1 items-center justify-center bg-background/85 px-6">
           <View className="w-full max-w-xs items-center gap-4 rounded-3xl border border-border bg-card p-6 card-shadow">
             {saveState === 'saving' ? (
-              <LoadingIndicator size="lg" label="Guardando colección..." />
+              <LoadingIndicator size="lg" label="Guardando en Supabase..." />
             ) : (
               <>
                 <LottiePlayer
@@ -190,7 +255,7 @@ export function CollectionFormScreen({ mode, collectionId }: CollectionFormScree
                     {mode === 'edit' ? 'Cambios guardados' : '¡Colección creada!'}
                   </AppText>
                   <AppText variant="caption" tone="muted" className="text-center">
-                    Borrador listo en tu biblioteca local.
+                    Ya está guardada en tu cuenta de Supabase.
                   </AppText>
                 </View>
               </>

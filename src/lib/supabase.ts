@@ -14,6 +14,7 @@ import "react-native-url-polyfill/auto";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 import * as Linking from "expo-linking";
+import { Platform } from "react-native";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? "";
 const supabasePublishableKey =
@@ -44,6 +45,37 @@ export function getAuthRedirectUrl(path = "auth/callback") {
   }
 
   return Linking.createURL(normalizedPath || "auth/callback");
+}
+
+/** Debe coincidir con `expo.scheme` definido en app.json. */
+export const APP_SCHEME = "melody";
+
+export const AUTH_CALLBACK_PATH = "auth/callback";
+
+/**
+ * URL de retorno nativa para OAuth.
+ *
+ * Se construye de forma determinista porque `Linking.createURL()` incluye el
+ * host del servidor de desarrollo dentro de un development build
+ * (por ejemplo `melody://192.168.x.x:8081/auth/callback`). Supabase rechazaría
+ * ese host y terminaría redirigiendo al Site URL (Vercel) con `?code=...`.
+ */
+export function getMobileAuthRedirectUrl(path = AUTH_CALLBACK_PATH) {
+  const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
+  return `${APP_SCHEME}://${normalizedPath || AUTH_CALLBACK_PATH}`;
+}
+
+/**
+ * Redirect que se envía a Supabase en `signInWithOAuth`.
+ * - Nativo: esquema propio de la app (`melody://auth/callback`).
+ * - Web: la URL pública configurada en `EXPO_PUBLIC_SITE_URL`.
+ */
+export function getOAuthRedirectUrl() {
+  if (Platform.OS === "web") {
+    return getAuthRedirectUrl(AUTH_CALLBACK_PATH);
+  }
+
+  return getMobileAuthRedirectUrl(AUTH_CALLBACK_PATH);
 }
 
 export const supabase = createClient(supabaseUrl, supabasePublishableKey, {

@@ -8,9 +8,11 @@
     "scheme": "melody",
     "userInterfaceStyle": "dark",
     "ios": {
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "com.melody.app"
     },
     "android": {
+      "package": "com.melody.app",
       "adaptiveIcon": {
         "backgroundColor": "#070810",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -37,6 +39,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5a514903-8649-4ad6-a3e1-0f143a0dbdce"
+      }
     }
   }
 }

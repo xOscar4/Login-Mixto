@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { supabase } from "@/lib/supabase";
+import { exchangeCodeForSessionOnce } from "@/services/auth";
 import type { Session, User } from "@supabase/supabase-js";
 
 type SessionContextValue = {
@@ -85,8 +86,25 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
       try {
         const parsedUrl = new URL(url);
+        const code = parsedUrl.searchParams.get("code");
+        const authError = parsedUrl.searchParams.get("error");
+        const authDescription =
+          parsedUrl.searchParams.get("error_description") ??
+          "No se pudo completar la autenticación.";
         const tokenHash = parsedUrl.searchParams.get("token_hash");
         const type = parsedUrl.searchParams.get("type");
+
+        if (code) {
+          await exchangeCodeForSessionOnce(code);
+          await refreshSession();
+          router.replace("/home");
+          return;
+        }
+
+        if (authError) {
+          console.warn("[Melody] OAuth callback error:", authDescription);
+          return;
+        }
 
         if (!tokenHash || !type) {
           return;

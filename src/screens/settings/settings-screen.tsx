@@ -13,7 +13,11 @@ import { Screen } from "@/components/ui/screen";
 import { SectionHeader } from "@/components/ui/section-header";
 import { INTEGRATIONS } from "@/config/integrations";
 import { useSession } from "@/features/auth/session-context";
-import { signOut } from "@/services/auth";
+import {
+  isGoogleOnlyUser,
+  openGooglePasswordPage,
+  signOut,
+} from "@/services/auth";
 
 type SettingsRowProps = {
   icon: IconName;
@@ -64,8 +68,42 @@ function SettingsRow({
 
 export function SettingsScreen() {
   const router = useRouter();
-  const { exitPreview, isAuthenticated } = useSession();
+  const { exitPreview, isAuthenticated, user } = useSession();
   const [confirmExit, setConfirmExit] = useState(false);
+  const [passwordNotice, setPasswordNotice] = useState<{
+    tone: "info" | "danger";
+    title: string;
+    message: string;
+  } | null>(null);
+
+  const isGoogleAccount = isGoogleOnlyUser(user);
+
+  async function handleChangePassword() {
+    // Cuenta de Google: no existe contraseña de Melody que cambiar.
+    if (isGoogleAccount) {
+      setPasswordNotice({
+        tone: "info",
+        title: "Tu contraseña se administra en Google",
+        message:
+          "Abrimos la página oficial de tu cuenta de Google. Melody no guarda ni modifica esa contraseña.",
+      });
+
+      try {
+        await openGooglePasswordPage();
+      } catch {
+        setPasswordNotice({
+          tone: "danger",
+          title: "No se pudo abrir el navegador",
+          message:
+            "Abre https://myaccount.google.com/signinoptions/password manualmente desde tu navegador.",
+        });
+      }
+
+      return;
+    }
+
+    router.push("/settings/change-password");
+  }
 
   async function handleSignOut() {
     setConfirmExit(false);
@@ -98,9 +136,15 @@ export function SettingsScreen() {
             </View>
 
             <View className="flex-1 gap-1">
-              <AppText variant="subheading">Sesión de vista previa</AppText>
+              <AppText variant="subheading">
+                {isAuthenticated
+                  ? "Cuenta conectada"
+                  : "Sesión de vista previa"}
+              </AppText>
               <AppText variant="caption" tone="muted">
-                Sin cuenta conectada
+                {isAuthenticated
+                  ? (user?.email ?? "Cuenta autenticada")
+                  : "Sin cuenta conectada"}
               </AppText>
             </View>
 
@@ -109,8 +153,9 @@ export function SettingsScreen() {
 
           <View className="mt-4 rounded-2xl border border-border bg-background/40 p-3">
             <AppText variant="caption" tone="muted">
-              No hay un usuario real cargado. Supabase Auth se conectará en la
-              siguiente etapa.
+              {isAuthenticated
+                ? "Tu sesión se gestiona con Supabase Auth y se restaura al abrir la app."
+                : "No hay un usuario real cargado. Inicia sesión para continuar."}
             </AppText>
           </View>
         </View>
@@ -119,16 +164,34 @@ export function SettingsScreen() {
       <Reveal delay={140} className="gap-3">
         <SectionHeader title="Cuenta" caption="Acceso y seguridad" />
 
+        {passwordNotice ? (
+          <FormNotice
+            tone={passwordNotice.tone}
+            title={passwordNotice.title}
+            message={passwordNotice.message}
+          />
+        ) : null}
+
         <View className="gap-3">
           <SettingsRow
             icon="key"
             title="Cambiar contraseña"
-            caption="Prepara el flujo y revisa sus estados"
-            onPress={() => router.push("/settings/change-password")}
+            caption={
+              isGoogleAccount
+                ? "Se administra en tu cuenta de Google"
+                : isAuthenticated
+                  ? "Actualiza la contraseña de tu cuenta"
+                  : "Necesitas iniciar sesión primero"
+            }
+            onPress={handleChangePassword}
           />
           <SettingsRow
             icon="logout"
-            title="Cerrar sesión de vista previa"
+            title={
+              isAuthenticated
+                ? "Cerrar sesión"
+                : "Cerrar sesión de vista previa"
+            }
             caption="Vuelve a la pantalla de inicio de sesión"
             onPress={() => setConfirmExit(true)}
             tone="danger"
@@ -139,7 +202,7 @@ export function SettingsScreen() {
       <Reveal delay={200} className="gap-3">
         <SectionHeader
           title="Integraciones"
-          caption="Todavía no configuradas"
+          caption="Estado real de la configuración"
         />
 
         <View className="gap-3 rounded-3xl border border-border bg-card/70 p-4">
@@ -161,8 +224,22 @@ export function SettingsScreen() {
                   {integration.description}
                 </AppText>
               </View>
-              <View className="rounded-full border border-warning/30 bg-warning/10 px-2.5 py-1">
-                <AppText variant="overline" className="text-warning">
+              <View
+                className={
+                  integration.status === "Activo"
+                    ? "rounded-full border border-success/30 bg-success/10 px-2.5 py-1"
+                    : "rounded-full border border-warning/30 bg-warning/10 px-2.5 py-1"
+                }
+              >
+                <AppText
+                  variant="overline"
+                  tone={integration.status === "Activo" ? "success" : undefined}
+                  className={
+                    integration.status === "Activo"
+                      ? "tracking-wider"
+                      : "text-warning"
+                  }
+                >
                   {integration.status}
                 </AppText>
               </View>
@@ -171,9 +248,9 @@ export function SettingsScreen() {
         </View>
 
         <FormNotice
-          tone="info"
-          title="Sin credenciales configuradas"
-          message="No se solicitan claves ni se realizan conexiones. Esta pantalla solo refleja el estado pendiente."
+          tone="success"
+          title="Supabase y Google conectados"
+          message="Supabase gestiona la autenticación y las colecciones con RLS. Google Cloud se usa para el inicio de sesión con Google."
         />
       </Reveal>
 
@@ -194,9 +271,13 @@ export function SettingsScreen() {
 
       <ConfirmDialog
         visible={confirmExit}
-        title="¿Cerrar la vista previa?"
-        message="Volverás al inicio de sesión. No se cerrará ninguna sesión real porque no existe una cuenta conectada."
-        confirmLabel="Volver al login"
+        title={isAuthenticated ? "¿Cerrar sesión?" : "¿Cerrar la vista previa?"}
+        message={
+          isAuthenticated
+            ? "Se cerrará la sesión actual de Supabase y volverás a la pantalla de inicio."
+            : "Volverás al inicio de sesión. La vista previa se cerrará sin afectar tu cuenta real."
+        }
+        confirmLabel={isAuthenticated ? "Cerrar sesión" : "Volver al login"}
         onConfirm={handleSignOut}
         onCancel={() => setConfirmExit(false)}
       />

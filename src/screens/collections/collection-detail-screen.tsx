@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { FormNotice } from '@/components/ui/form-notice';
 import { IconButton } from '@/components/ui/icon-button';
+import { LoadingIndicator } from '@/components/ui/loading-indicator';
 import { LottiePlayer } from '@/components/ui/lottie-player';
 import { MusicCover } from '@/components/ui/music-cover';
-import { PreviewChip } from '@/components/ui/preview-chip';
 import { Reveal } from '@/components/ui/reveal';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
@@ -21,9 +21,22 @@ export function CollectionDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id: string }>();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { getCollection, deleteCollection } = useCollections();
+  const { getCollection, deleteCollection, loading, error } = useCollections();
   const collection = id ? getCollection(id) : undefined;
   const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  if (loading) {
+    return (
+      <Screen scroll contentClassName="gap-6">
+        <ScreenHeader title="Colección" />
+        <View className="items-center gap-3 rounded-3xl border border-border bg-card/70 px-6 py-10 card-shadow">
+          <LoadingIndicator size="lg" label="Cargando colección..." />
+        </View>
+      </Screen>
+    );
+  }
 
   if (!collection) {
     return (
@@ -40,8 +53,7 @@ export function CollectionDetailScreen() {
               No encontramos esta colección
             </AppText>
             <AppText variant="caption" tone="muted" className="text-center">
-              Puede que fuera un borrador en memoria y la app se haya reiniciado. Supabase todavía
-              no guarda colecciones.
+              Puede que la hayas eliminado o que no pertenezca a tu cuenta.
             </AppText>
           </View>
           <Button
@@ -51,26 +63,45 @@ export function CollectionDetailScreen() {
             className="w-full"
           />
         </View>
+
+        {error ? (
+          <FormNotice tone="danger" title="Error de conexión" message={error} />
+        ) : null}
       </Screen>
     );
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!collection) {
       return;
     }
 
-    deleteCollection(collection.id);
-    setConfirming(false);
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    router.replace('/collections');
+    setDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await deleteCollection(collection.id);
+      setConfirming(false);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace('/collections');
+    } catch (deleteError) {
+      setConfirming(false);
+      setDeleteError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : 'No se pudo eliminar la colección.',
+      );
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
     <Screen scroll contentClassName="gap-6">
       <ScreenHeader
         title="Detalle"
-        subtitle="Borrador local"
+        subtitle="Guardada en Supabase"
         right={
           <IconButton
             name="edit"
@@ -93,7 +124,12 @@ export function CollectionDetailScreen() {
             <MusicCover index={collection.coverIndex} size="xl" />
 
             <View className="flex-1 gap-2 pt-1">
-              <PreviewChip label="Borrador local" />
+              <View className="flex-row items-center gap-2 self-start rounded-full border border-success/30 bg-success/10 px-3 py-1.5">
+                <View className="h-1.5 w-1.5 rounded-full bg-success" />
+                <AppText variant="overline" tone="success" className="tracking-wider">
+                  Guardada en Supabase
+                </AppText>
+              </View>
               <AppText variant="title" numberOfLines={3}>
                 {collection.name}
               </AppText>
@@ -110,6 +146,12 @@ export function CollectionDetailScreen() {
           ) : null}
         </View>
       </Reveal>
+
+      {deleteError ? (
+        <Reveal delay={60}>
+          <FormNotice tone="danger" title="No se pudo eliminar" message={deleteError} />
+        </Reveal>
+      ) : null}
 
       <Reveal delay={80} className="flex-row gap-3">
         <Button
@@ -155,25 +197,17 @@ export function CollectionDetailScreen() {
             Las pistas llegarán después
           </AppText>
           <AppText variant="caption" tone="muted" className="text-center">
-            En la siguiente etapa, cada colección podrá guardar sus canciones en Supabase con
-            portada, artista y enlaces.
+            El CRUD de esta etapa cubre nombre, descripción y portada de la colección.
           </AppText>
         </View>
-      </Reveal>
-
-      <Reveal delay={200}>
-        <FormNotice
-          tone="pending"
-          title="Sin persistencia todavía"
-          message="Este detalle se construye a partir de un borrador en memoria. Si cierras la app, la colección desaparece."
-        />
       </Reveal>
 
       <ConfirmDialog
         visible={confirming}
         title="¿Eliminar esta colección?"
-        message={`"${collection.name}" se quitará de la sesión actual. No hay copia en Supabase.`}
+        message={`"${collection.name}" se eliminará de tu cuenta en Supabase. Esta acción no se puede deshacer.`}
         confirmLabel="Eliminar"
+        loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setConfirming(false)}
       />

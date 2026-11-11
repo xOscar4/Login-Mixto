@@ -8,6 +8,8 @@ import { Icon } from './icon';
 type LogoProps = {
   size?: 'sm' | 'md' | 'lg';
   showWordmark?: boolean;
+  /** Muestra el recuadro con la nota musical. Poner en false deja solo el wordmark. */
+  showMark?: boolean;
   className?: string;
 };
 
@@ -29,18 +31,25 @@ const WORDMARK_SIZES = {
   lg: 'text-4xl',
 } as const;
 
-export function Logo({ size = 'md', showWordmark = false, className }: LogoProps) {
+export function Logo({
+  size = 'md',
+  showWordmark = false,
+  showMark = true,
+  className,
+}: LogoProps) {
   return (
     <View className={cn('items-center gap-3', className)}>
-      <View
-        className={cn(
-          'items-center justify-center border border-white/15 bg-gradient-to-br from-primary via-blue-500 to-secondary glow-primary',
-          TILE_SIZES[size],
-        )}
-      >
-        <View className="absolute -right-2 -top-2 h-6 w-6 rounded-full bg-white/25" />
-        <Icon name="music" size={ICON_SIZES[size]} tone="inverse" />
-      </View>
+      {showMark ? (
+        <View
+          className={cn(
+            'items-center justify-center border border-white/15 bg-gradient-to-br from-primary via-blue-500 to-secondary glow-primary',
+            TILE_SIZES[size],
+          )}
+        >
+          <View className="absolute -right-2 -top-2 h-6 w-6 rounded-full bg-white/25" />
+          <Icon name="music" size={ICON_SIZES[size]} tone="inverse" />
+        </View>
+      ) : null}
 
       {showWordmark ? (
         <View className="items-center gap-1">

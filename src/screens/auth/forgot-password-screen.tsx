@@ -60,12 +60,11 @@ export function ForgotPasswordScreen() {
 
             <View className="items-center gap-2">
               <AppText variant="heading" className="text-center">
-                Solicitud preparada
+                Enlace enviado
               </AppText>
               <AppText variant="caption" tone="muted" className="text-center">
-                Validamos el formato de{" "}
-                <AppText variant="caption">{email.trim()}</AppText>, pero no se
-                envió ningún correo todavía.
+                Revisa <AppText variant="caption">{email.trim()}</AppText> para
+                continuar con la recuperación de acceso.
               </AppText>
             </View>
 
@@ -106,8 +105,9 @@ export function ForgotPasswordScreen() {
             <View className="gap-2">
               <AppText variant="heading">¿Olvidaste tu contraseña?</AppText>
               <AppText variant="caption" tone="muted">
-                Escribe el correo con el que te registrarás. Te mostraremos cómo
-                se verá la confirmación cuando el envío esté conectado.
+                Escribe el correo con el que te registrarás. Supabase enviará un
+                enlace para restablecer la contraseña y abrir la pantalla de
+                recuperación segura.
               </AppText>
             </View>
 
@@ -137,7 +137,7 @@ export function ForgotPasswordScreen() {
             <FormNotice
               tone="info"
               title="Enviar enlace de recuperación"
-              message="Se enviará un enlace a tu correo para restablecer la contraseña desde la configuración de Supabase."
+              message="Se enviará un enlace a tu correo para restablecer la contraseña desde la web de confirmación de Melody."
             />
           </Reveal>
 

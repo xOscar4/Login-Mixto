@@ -12,6 +12,7 @@ type ConfirmDialogProps = {
   confirmLabel?: string;
   cancelLabel?: string;
   tone?: 'danger' | 'primary';
+  loading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -23,6 +24,7 @@ export function ConfirmDialog({
   confirmLabel = 'Confirmar',
   cancelLabel = 'Cancelar',
   tone = 'danger',
+  loading = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -32,11 +34,12 @@ export function ConfirmDialog({
       transparent
       animationType="fade"
       statusBarTranslucent
-      onRequestClose={onCancel}
+      onRequestClose={loading ? undefined : onCancel}
     >
       <View className="flex-1 items-center justify-center bg-background/80 px-6">
         <Pressable
           accessibilityLabel="Cerrar"
+          disabled={loading}
           onPress={onCancel}
           className="absolute inset-0"
         />
@@ -72,12 +75,15 @@ export function ConfirmDialog({
               label={cancelLabel}
               variant="secondary"
               onPress={onCancel}
+              disabled={loading}
               className="flex-1"
             />
             <Button
               label={confirmLabel}
               variant={tone === 'danger' ? 'danger' : 'primary'}
               onPress={onConfirm}
+              loading={loading}
+              disabled={loading}
               className="flex-1"
             />
           </View>

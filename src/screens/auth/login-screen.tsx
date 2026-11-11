@@ -1,7 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { Screen } from "@/components/ui/screen";
 import { TextField } from "@/components/ui/text-field";
 import { useSession } from "@/features/auth/session-context";
 import { hasErrors, validateLogin, type FieldErrors } from "@/lib/validation";
-import { signInWithEmail } from "@/services/auth";
+import { signInWithEmail, signInWithGoogle } from "@/services/auth";
 
 type Notice = { tone: FormNoticeTone; title: string; message: string };
 
@@ -25,6 +25,7 @@ export function LoginScreen() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   async function handleSubmit() {
     const nextErrors = validateLogin(email, password);
@@ -61,14 +62,35 @@ export function LoginScreen() {
     }
   }
 
-  function handleGoogle() {
-    setNotice({
-      tone: "pending",
-      title: "Google Cloud todavía no está configurado",
-      message:
-        "El botón está listo visualmente. El inicio de sesión con Google se habilitará cuando se configure el cliente OAuth.",
-    });
+  async function handleGoogle() {
     setErrors({});
+    setNotice(null);
+    setIsGoogleLoading(true);
+
+    try {
+      await signInWithGoogle();
+      setNotice({
+        tone: "success",
+        title: "Sesión iniciada",
+        message: "Se restaurará tu acceso en la aplicación.",
+      });
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace("/home");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "No se pudo iniciar sesión con Google.";
+
+      setNotice({
+        tone: "danger",
+        title: "No se pudo continuar con Google",
+        message,
+      });
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setIsGoogleLoading(false);
+    }
   }
 
   function handlePreview() {
@@ -78,13 +100,13 @@ export function LoginScreen() {
 
   return (
     <Screen scroll contentClassName="gap-6">
-      <Reveal className="items-center gap-3 pt-2">
+      <Reveal className="items-center gap-4 pt-2">
         <LottiePlayer
           source={require("@/assets/animations/splash-vinyl.json")}
           fallback="vinyl"
-          className="h-28 w-28"
+          className="h-32 w-32"
         />
-        <Logo size="md" showWordmark />
+        <Logo size="md" showWordmark showMark={false} />
       </Reveal>
 
       <Reveal delay={80} className="gap-2">
@@ -162,10 +184,17 @@ export function LoginScreen() {
             <Pressable
               accessibilityRole="button"
               onPress={handleGoogle}
-              className="min-h-14 flex-row items-center justify-center gap-3 rounded-2xl border border-border bg-surface/90 px-5 py-4 active:scale-[0.99] active:opacity-85"
+              disabled={isGoogleLoading}
+              className="min-h-14 flex-row items-center justify-center gap-3 rounded-2xl border border-border bg-surface/90 px-5 py-4 active:scale-[0.99] active:opacity-85 disabled:opacity-60"
             >
-              <GoogleMark size={20} />
-              <AppText variant="label">Continuar con Google</AppText>
+              {isGoogleLoading ? (
+                <ActivityIndicator size="small" color="#dbeafe" />
+              ) : (
+                <GoogleMark size={20} />
+              )}
+              <AppText variant="label">
+                {isGoogleLoading ? "Conectando..." : "Continuar con Google"}
+              </AppText>
             </Pressable>
           </View>
         </View>

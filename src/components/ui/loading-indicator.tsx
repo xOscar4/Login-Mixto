@@ -4,7 +4,7 @@ import { cn } from '@/lib/cn';
 import { AppText } from './app-text';
 import { LottiePlayer } from './lottie-player';
 
-const LOADING_ANIMATION = require('@/assets/animations/loading.json');
+const LOADING_ANIMATION = require('@/assets/animations/page-loading.json');
 
 type LoadingSize = 'sm' | 'md' | 'lg';
 
@@ -17,9 +17,9 @@ type LoadingIndicatorProps = {
 };
 
 const SIZE_MAP: Record<LoadingSize, { player: number; className: string }> = {
-  sm: { player: 28, className: 'h-7 w-7' },
-  md: { player: 48, className: 'h-12 w-12' },
-  lg: { player: 80, className: 'h-20 w-20' },
+  sm: { player: 40, className: 'h-10 w-10' },
+  md: { player: 64, className: 'h-16 w-16' },
+  lg: { player: 128, className: 'h-32 w-32' },
 };
 
 export function LoadingIndicator({
@@ -59,8 +59,8 @@ export function LoadingIndicator({
           <LottiePlayer
             source={LOADING_ANIMATION}
             fallback="loading"
-            className="h-16 w-16"
-            size={64}
+            className="h-32 w-32"
+            size={128}
           />
           {label ? (
             <AppText variant="subheading" className="text-center">

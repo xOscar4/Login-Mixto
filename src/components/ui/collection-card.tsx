@@ -46,7 +46,7 @@ export function CollectionCard({
         <View className="flex-row items-center gap-1.5">
           <View className="h-1.5 w-1.5 rounded-full bg-accent" />
           <AppText variant="caption" tone="muted">
-            Borrador local · {formatDate(collection.updatedAt)}
+            Guardada en Supabase · {formatDate(collection.updatedAt)}
           </AppText>
         </View>
       </View>

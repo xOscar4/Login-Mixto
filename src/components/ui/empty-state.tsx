@@ -5,7 +5,7 @@ import { AppText } from './app-text';
 import { Button } from './button';
 import { LottiePlayer } from './lottie-player';
 
-const EMPTY_ANIMATION = require('@/assets/animations/empty-vinyl.json');
+const EMPTY_ANIMATION = require('@/assets/animations/collections-empty.json');
 
 type EmptyStateProps = {
   title: string;
@@ -32,7 +32,7 @@ export function EmptyState({
       <LottiePlayer
         source={EMPTY_ANIMATION}
         fallback="vinyl"
-        className="h-36 w-36"
+        className="h-40 w-40"
       />
 
       <View className="items-center gap-2">
